@@ -71,8 +71,10 @@ def read_icons():
 ui = (HERE / "ui-manse.html").read_text(encoding="utf-8")
 assert "/* ENGINE_PLACEHOLDER */" in ui, "placeholder 없음"
 assert "/* ICONS_PLACEHOLDER */" in ui, "아이콘 placeholder 없음"
+assert "/* PAY_PLACEHOLDER */" in ui, "결제 placeholder 없음"
 out = ui.replace("/* ENGINE_PLACEHOLDER */", engine)
 out = out.replace("/* ICONS_PLACEHOLDER */", read_icons())
+out = out.replace("/* PAY_PLACEHOLDER */", (HERE / "pay.js").read_text(encoding="utf-8"))
 
 dest = pathlib.Path(sys.argv[1]) if len(sys.argv) > 1 else HERE / "manse.html"
 dest.write_text(out, encoding="utf-8")

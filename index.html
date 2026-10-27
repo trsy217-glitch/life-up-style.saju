@@ -345,6 +345,39 @@ button.term.open{background:rgba(154,123,63,.12);border-radius:2px}
  border-radius:2px;font-size:12.5px;line-height:1.75;color:var(--ink-2);word-break:keep-all}
 .termbox b{display:block;font-size:12px;color:var(--ink);margin-bottom:2px}
 
+/* ── 결제 전 동의 창 ──
+   법에서 요구하는 "구매 조건 확인 및 결제 동의" 자리다.
+   닫기보다 결제 버튼이 눈에 띄되, 경고가 작은 글씨로 묻히지 않게 둔다. */
+.paysheet{position:fixed;inset:0;z-index:100;background:rgba(46,42,34,.52);
+ display:flex;align-items:flex-end;justify-content:center;padding:0;overscroll-behavior:contain}
+@media (min-width:560px){ .paysheet{align-items:center;padding:20px} }
+.paysheet-in{width:100%;max-width:520px;max-height:92vh;overflow-y:auto;-webkit-overflow-scrolling:touch;
+ background:var(--paper);border:1px solid var(--rule);border-radius:10px 10px 0 0;
+ padding:24px 20px calc(22px + env(safe-area-inset-bottom))}
+@media (min-width:560px){ .paysheet-in{border-radius:6px} }
+.paysheet-in h2{font-family:var(--mun);font-size:19px;font-weight:700;margin-bottom:14px}
+.payinfo{display:grid;grid-template-columns:auto 1fr;gap:7px 14px;font-size:14px;line-height:1.7;
+ padding-bottom:15px;border-bottom:1px solid var(--rule-soft)}
+.payinfo dt{font-weight:700;color:var(--ink-3);font-size:13px;white-space:nowrap}
+.payinfo dd{word-break:keep-all}
+.payinfo dd b{font-family:var(--mun);font-size:18px;font-weight:700;color:var(--gold)}
+.paywarn{margin-top:15px;padding:13px 14px;background:var(--paper-in);border-radius:3px}
+.paywarn b{display:block;font-size:12.5px;font-weight:700;color:var(--ink-2);margin-bottom:7px}
+.paywarn ul{margin:0;padding-left:16px}
+.paywarn li{font-size:12.5px;line-height:1.75;color:var(--ink-2);margin-bottom:6px;word-break:keep-all}
+.paywarn li:last-child{margin-bottom:0}
+.paywarn li b{display:inline;font-size:inherit;color:var(--ink)}
+.paychk{display:flex;gap:10px;align-items:flex-start;margin-top:16px;font-size:13px;line-height:1.7;
+ color:var(--ink);cursor:pointer;word-break:keep-all}
+.paychk input{width:20px;height:20px;accent-color:var(--gold);flex:none;margin-top:1px}
+.paychk a{color:var(--gold)}
+.paybtns{display:grid;grid-template-columns:1fr 2fr;gap:9px;margin-top:18px}
+.paybtns button{padding:15px 10px;border-radius:3px;font-family:var(--mun);font-size:16px;font-weight:700;cursor:pointer}
+.paybtns #pay-no{background:none;border:1px solid var(--rule);color:var(--ink-2)}
+.paybtns #pay-go{background:var(--ink);border:0;color:var(--paper-up)}
+.paybtns #pay-go[disabled]{background:#C9C2B4;cursor:not-allowed}
+.paynote{margin-top:11px;font-size:11.5px;color:var(--ink-3);line-height:1.7;text-align:center}
+
 .lock{border:1px solid var(--rule);border-radius:2px;padding:26px 20px;margin:20px 0 6px;background:var(--paper-up);text-align:center}
 .lock p{font-size:14.5px;line-height:1.8;color:var(--ink-2);word-break:keep-all}
 .lock b{display:block;font-family:var(--mun);font-size:17px;font-weight:700;color:var(--ink);margin-bottom:8px}
@@ -564,7 +597,7 @@ footer .fcopy{margin-top:9px;font-size:11.5px;color:#A79F8F}
 
 <footer>
   <p>절입 시각과 진태양시를 반영해 계산합니다. 사주는 타고난 조건을 읽는 틀이고, 결정은 보시는 분의 몫입니다.</p>
-  <p class="flinks"><a href="/terms.html">이용약관</a><a href="/privacy.html">개인정보처리방침</a></p>
+  <p class="flinks"><a href="/terms.html">이용약관</a><a href="/refund.html">결제·환불</a><a href="/privacy.html">개인정보처리방침</a></p>
   <p class="fcopy">© 2026 LIFE-UP STYLE</p>
 </footer>
 </div>
@@ -8250,8 +8283,268 @@ var CATICON = {
 };
 </script>
 
+<!-- 토스페이먼츠 결제 모듈 -->
+<script src="https://js.tosspayments.com/v2/standard"></script>
+
 <script>
-window.TEST_MODE = true;
+/* ═══ 설정 ═══
+   TEST_MODE  결제 없이 전부 열립니다. 출시 상태에서는 반드시 false.
+   TOSS_CLIENT_KEY
+     테스트: test_ck_... (토스 개발자센터 → 내 개발정보)
+     실제  : live_ck_...
+     서버의 TOSS_SECRET_KEY 와 반드시 짝을 맞추세요
+     (test_ck 에는 test_sk, live_ck 에는 live_sk).
+   클라이언트 키는 공개되어도 되는 값입니다. 시크릿 키는 절대 여기 넣지 마세요. */
+window.TEST_MODE = false;
+window.LIFEUP = {
+  TOSS_CLIENT_KEY: "REPLACE_WITH_TOSS_CLIENT_KEY",
+  CONFIRM_URL: "/api/confirm"
+};
+</script>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+ *  결제 — 토스페이먼츠
+ *
+ *  상품은 두 가지다.
+ *    all  4,900원  여섯 갈래 + 신년운세
+ *    gh   1,900원  연인궁합 + 비즈니스궁합
+ *
+ *  한 번 결제하면 그 기기의 브라우저에 열림 표시가 남는다. 서버에 회원
+ *  정보를 두지 않는 구조라 기기를 바꾸면 다시 열어야 하고, 그 사실을
+ *  결제 전 동의 화면과 약관에 그대로 적어 둔다.
+ *
+ *  결제 승인은 반드시 서버(/api/confirm)에서 한다. 브라우저에서 "결제됐다"
+ *  고 말하는 것만 믿으면 누구나 콘솔 한 줄로 전부 열 수 있다.
+ * ═══════════════════════════════════════════════════════════ */
+(function () {
+  "use strict";
+
+  var CFG = window.LIFEUP || {};
+  var KEY_STORE = "lifeup.paid.v1";
+
+  /* ── 상품표 ──
+     서버(api/confirm.js)에도 같은 표가 있다. 둘이 어긋나면 결제가 거절된다.
+     가격을 바꾸실 때는 반드시 두 곳을 같이 고치세요. */
+  var PRODUCT = {
+    all: {
+      code: "all", price: 4900, name: "LIFE-UP STYLE 풀이 전부",
+      covers: ["money", "love", "biz", "job", "future", "newyear"],
+      what: "금전 · 연애 · 사업 · 직업 · 미래 다섯 갈래와 신년운세 전체"
+    },
+    gh: {
+      code: "gh", price: 1900, name: "LIFE-UP STYLE 궁합",
+      covers: ["love2", "team"],
+      what: "연인궁합과 비즈니스궁합 전체"
+    }
+  };
+
+  /** 어떤 갈래가 어느 상품에 들어 있는지 */
+  function productFor(key) {
+    for (var c in PRODUCT) {
+      if (PRODUCT[c].covers.indexOf(key) >= 0) return PRODUCT[c];
+    }
+    return null;
+  }
+
+  /* ── 열림 표시 보관 ──
+     사생활 보호 모드나 저장소를 막아 둔 브라우저에서는 읽기·쓰기가
+     예외를 던진다. 그래도 앱이 멈추면 안 되므로 전부 감싼다. */
+  function readPaid() {
+    try {
+      var raw = localStorage.getItem(KEY_STORE);
+      var v = raw ? JSON.parse(raw) : null;
+      return (v && typeof v === "object" && v.items) ? v : { items: {} };
+    } catch (e) { return { items: {} }; }
+  }
+  function writePaid(v) {
+    try { localStorage.setItem(KEY_STORE, JSON.stringify(v)); return true; }
+    catch (e) { return false; }
+  }
+
+  function markPaid(code, info) {
+    var v = readPaid();
+    v.items[code] = {
+      at: new Date().toISOString(),
+      orderId: (info && info.orderId) || "",
+      paymentKey: (info && info.paymentKey) || "",
+      amount: (info && info.amount) || (PRODUCT[code] ? PRODUCT[code].price : 0)
+    };
+    return writePaid(v);
+  }
+
+  function hasProduct(code) {
+    if (window.TEST_MODE) return true;
+    return !!readPaid().items[code];
+  }
+
+  /** 갈래 하나가 열려 있는지 */
+  function has(key) {
+    if (window.TEST_MODE) return true;
+    if (key === "basic") return true;
+    var p = productFor(key);
+    return p ? hasProduct(p.code) : false;
+  }
+
+  /* ── 주문번호 ──
+     상품 코드를 안에 넣어 둔다. 서버가 이걸 읽어 "이 주문은 얼마여야
+     하는가"를 스스로 정하고, 브라우저가 보낸 금액과 맞는지 본다. */
+  function makeOrderId(code) {
+    var r = "";
+    var pool = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    try {
+      var a = new Uint8Array(10);
+      (window.crypto || window.msCrypto).getRandomValues(a);
+      for (var i = 0; i < a.length; i++) r += pool[a[i] % pool.length];
+    } catch (e) {
+      for (var j = 0; j < 10; j++) r += pool[Math.floor(Math.random() * pool.length)];
+    }
+    return "LUS-" + code + "-" + Date.now().toString(36).toUpperCase() + "-" + r;
+  }
+
+  /* ── 결제 전 동의 ──
+     전자상거래법은 결제 직전에 무엇을 얼마에 사는지, 청약철회가 어떻게
+     제한되는지를 보여 주고 동의를 받도록 하고 있다. 이 창이 그 자리다. */
+  function agreeModal(p) {
+    return new Promise(function (resolve) {
+      var wrap = document.createElement("div");
+      wrap.className = "paysheet";
+      wrap.innerHTML =
+        '<div class="paysheet-in" role="dialog" aria-modal="true" aria-labelledby="pay-h">'
+        + '<h2 id="pay-h">구매 조건 확인</h2>'
+        + '<dl class="payinfo">'
+        + '<dt>상품</dt><dd>' + p.name + '</dd>'
+        + '<dt>내용</dt><dd>' + p.what + '</dd>'
+        + '<dt>금액</dt><dd><b>' + p.price.toLocaleString() + '원</b> (부가세 포함)</dd>'
+        + '<dt>제공 방식</dt><dd>결제 즉시 이 화면에서 바로 열립니다</dd>'
+        + '<dt>이용 기간</dt><dd>기간 제한 없음</dd>'
+        + '</dl>'
+        + '<div class="paywarn">'
+        + '<b>먼저 확인해 주세요</b>'
+        + '<ul>'
+        + '<li><b>결제하면 바로 열립니다.</b> 디지털 콘텐츠라 내용을 확인하신 뒤에는 '
+        + '「전자상거래법」 제17조에 따라 청약철회가 제한됩니다.</li>'
+        + '<li>아직 열어보지 않으셨다면 <b>7일 이내 전액 환불</b>됩니다. '
+        + '중복 결제나 장애로 보지 못하신 경우에도 전액 환불해 드립니다.</li>'
+        + '<li>열람 기록은 <b>지금 쓰시는 기기의 브라우저에만</b> 남습니다. '
+        + '다른 기기에서는 다시 열어 주셔야 하고, 브라우저 데이터를 지우면 함께 지워집니다. '
+        + '이 경우 영수증을 보내 주시면 확인해 드립니다.</li>'
+        + '<li>사주 풀이는 전통 명리 해석이며 <b>의료·법률·금융 조언이 아닙니다.</b></li>'
+        + '</ul>'
+        + '</div>'
+        + '<label class="paychk"><input type="checkbox" id="pay-agree">'
+        + '<span>위 내용을 확인했으며 결제에 동의합니다. '
+        + '<a href="/terms.html" target="_blank" rel="noopener">이용약관</a> · '
+        + '<a href="/refund.html" target="_blank" rel="noopener">환불정책</a> · '
+        + '<a href="/privacy.html" target="_blank" rel="noopener">개인정보처리방침</a></span></label>'
+        + '<div class="paybtns">'
+        + '<button type="button" id="pay-no">닫기</button>'
+        + '<button type="button" id="pay-go" disabled>' + p.price.toLocaleString() + '원 결제하기</button>'
+        + '</div>'
+        + '<p class="paynote">결제는 토스페이먼츠를 통해 처리되며, 카드 정보는 저희에게 저장되지 않습니다.</p>'
+        + '</div>';
+      document.body.appendChild(wrap);
+      document.documentElement.style.overflow = "hidden";
+
+      var chk = wrap.querySelector("#pay-agree");
+      var go = wrap.querySelector("#pay-go");
+      chk.addEventListener("change", function () { go.disabled = !chk.checked; });
+
+      function close(v) {
+        document.documentElement.style.overflow = "";
+        if (wrap.parentNode) wrap.parentNode.removeChild(wrap);
+        resolve(v);
+      }
+      wrap.querySelector("#pay-no").addEventListener("click", function () { close(false); });
+      go.addEventListener("click", function () { if (chk.checked) close(true); });
+      wrap.addEventListener("click", function (e) { if (e.target === wrap) close(false); });
+      document.addEventListener("keydown", function esc(e) {
+        if (e.key === "Escape") { document.removeEventListener("keydown", esc); close(false); }
+      });
+      setTimeout(function () { try { chk.focus(); } catch (e) {} }, 30);
+    });
+  }
+
+  function say(msg) {
+    try {
+      var b = document.getElementById("errbox");
+      if (b) { b.style.display = "block"; b.textContent = msg;
+               setTimeout(function () { b.style.display = "none"; }, 6000); return; }
+    } catch (e) {}
+    alert(msg);
+  }
+
+  /* ── 결제 요청 ── */
+  function buy(key) {
+    var p = productFor(key);
+    if (!p) { say("결제할 수 없는 항목입니다."); return; }
+    if (hasProduct(p.code)) { say("이미 열려 있습니다."); return; }
+
+    var ck = CFG.TOSS_CLIENT_KEY || "";
+    if (!ck || ck.indexOf("REPLACE") === 0) {
+      say("결제 키가 아직 설정되지 않았습니다. 잠시 뒤에 다시 시도해 주세요.");
+      return;
+    }
+    if (typeof TossPayments === "undefined") {
+      say("결제 모듈을 불러오지 못했습니다. 새로고침 뒤 다시 시도해 주세요.");
+      return;
+    }
+
+    agreeModal(p).then(function (ok) {
+      if (!ok) return;
+      var orderId = makeOrderId(p.code);
+      /* 돌아왔을 때 어떤 주문이었는지 알아야 한다 */
+      try { sessionStorage.setItem("lifeup.pending", JSON.stringify({ code: p.code, orderId: orderId })); } catch (e) {}
+
+      var origin = location.origin;
+      try {
+        var tp = TossPayments(ck);
+        var payment = tp.payment({ customerKey: TossPayments.ANONYMOUS });
+        payment.requestPayment({
+          method: "CARD",
+          amount: { currency: "KRW", value: p.price },
+          orderId: orderId,
+          orderName: p.name,
+          successUrl: origin + "/success.html",
+          failUrl: origin + "/fail.html",
+          card: { useEscrow: false, flowMode: "DEFAULT", useCardPoint: false, useAppCardOnly: false }
+        })["catch"](function (err) {
+          if (err && (err.code === "USER_CANCEL" || err.code === "PAY_PROCESS_CANCELED")) return;
+          say("결제를 시작하지 못했습니다. " + ((err && err.message) || ""));
+        });
+      } catch (e) {
+        say("결제를 시작하지 못했습니다. 잠시 뒤에 다시 시도해 주세요.");
+      }
+    });
+  }
+
+  /** 지금 열려 있는 상품 목록 */
+  function list() {
+    var v = readPaid(), out = [];
+    for (var c in v.items) if (PRODUCT[c]) out.push({ code: c, name: PRODUCT[c].name, at: v.items[c].at });
+    return out;
+  }
+
+  /** 돌아온 직후 화면을 다시 그리기 위한 자리. 서버 조회는 하지 않는다 */
+  function sync() { return Promise.resolve(list()); }
+
+  window.Pay = {
+    PRODUCT: PRODUCT,
+    productFor: productFor,
+    price: function (key) { var p = productFor(key); return p ? p.price : 0; },
+    has: has,
+    hasProduct: hasProduct,
+    markPaid: markPaid,
+    buy: buy,
+    list: list,
+    sync: sync,
+    clear: function () { try { localStorage.removeItem(KEY_STORE); } catch (e) {} }
+  };
+})();
+
+</script>
+
+<script>
 
 (function(){
 "use strict";
@@ -8568,7 +8861,9 @@ function qaHTML(it, locked){
 /* ── 상태 ── */
 var CUR=null, SIMPLE=null, TAB="basic", MYNAME="";
 function me(){ return MYNAME || "나"; }
-var PRICE={ basic:0, money:9900, love:9900, biz:9900, job:9900, future:9900, gh:12000, newyear:9900 };
+/* 가격은 pay.js 의 PRODUCT 하나만 본다. 두 군데 적어 두면 반드시 어긋난다 */
+function priceOf(key){ try{ return Pay.price(key); }catch(e){ return 0; } }
+function wonOf(key){ return priceOf(key).toLocaleString(); }
 
 function unlocked(key){
   if(window.TEST_MODE) return true;
@@ -8605,11 +8900,21 @@ function renderIndex(){
   add("team",  "同", "비즈니스궁합");
 }
 
+/* 결제 버튼 연결 — 잠금 상자가 들어가는 모든 화면에서 같이 쓴다 */
+function bindBuy(box){
+  [].slice.call(box.querySelectorAll("[data-buy]")).forEach(function(b){
+    b.onclick=guard(function(){ Pay.buy(b.dataset.buy); });
+  });
+}
+
 function lockHTML(cat){
+  /* 한 갈래만 따로 파는 게 아니라 풀이 전체가 한 상품이다.
+     "이 갈래만 사는 것"으로 읽히면 결제 뒤에 오해가 생긴다. */
   return '<div class="lock"><b>'+esc(cat.name)+' 갈래는 여기서부터 잠겨 있습니다</b>'
-    +'<p>남은 '+(cat.items.length-cat.freeCount)+'가지를 열면 '+esc(cat.sub)+'에 대해 끝까지 보실 수 있습니다.</p>'
-    +'<button type="button" data-buy="'+esc(cat.key)+'">'+esc(cat.name)+' 전부 열기</button>'
-    +'<p class="price">'+(PRICE[cat.key]||9900).toLocaleString()+'원 · 한 번 열면 계속 보실 수 있습니다</p></div>';
+    +'<p>남은 '+(cat.items.length-cat.freeCount)+'가지를 포함해 '
+    +'<strong>금전·연애·사업·직업·미래 다섯 갈래와 신년운세 전체</strong>가 한 번에 열립니다.</p>'
+    +'<button type="button" data-buy="'+esc(cat.key)+'">풀이 전부 열기</button>'
+    +'<p class="price">'+wonOf(cat.key)+'원 · 한 번 열면 계속 보실 수 있습니다</p></div>';
 }
 
 /* 보여줄 해 — 10월부터는 내년 것을 먼저 띄운다.
@@ -8670,9 +8975,10 @@ function nyHTML(R){
   if(!open){
     h.push('<div class="lock"><b>'+R.year+'년운세는 여기서부터 잠겨 있습니다</b>'
       +'<p>남은 '+(R.sections.length-FREE)+'가지에 열두 달 흐름, 돈·일·사람·몸, '
-      +'올해 할 한 가지와 달력에 적을 것이 들어 있습니다.</p>'
-      +'<button type="button" data-buy="newyear">'+R.year+'년운세 전부 열기</button>'
-      +'<p class="price">'+PRICE.newyear.toLocaleString()+'원 · 한 번 열면 계속 보실 수 있습니다</p></div>');
+      +'올해 할 한 가지와 달력에 적을 것이 들어 있습니다. '
+      +'<strong>다섯 갈래 풀이도 함께 열립니다.</strong></p>'
+      +'<button type="button" data-buy="newyear">풀이 전부 열기</button>'
+      +'<p class="price">'+wonOf("newyear")+'원 · 한 번 열면 계속 보실 수 있습니다</p></div>');
   }
   return h.join("");
 }
@@ -8683,9 +8989,7 @@ function renderNewYear(){
     var R=buildNewYear(CUR, NY_SHOW, { name: MYNAME || "" });
     box.innerHTML=nyHTML(R);
     bindTerms(box);
-    [].slice.call(box.querySelectorAll("[data-buy]")).forEach(function(b){
-      b.onclick=guard(function(){ Pay.buy(b.dataset.buy); });
-    });
+    bindBuy(box);
     var cp=$("ny-cp");
     if(cp) cp.onclick=function(){
       var t=R.year+"년 "+R.ganji.gapjaCn+", 나는 「"+R.char+" "+R.charName+"」\n"
@@ -8750,9 +9054,7 @@ function renderCat(){
   h.push('</div>');
   box.innerHTML=h.join("");
   bindTerms(box);
-  box.querySelectorAll("[data-buy]").forEach(function(b){
-    b.onclick=guard(function(){ Pay.buy(b.dataset.buy); });
-  });
+  bindBuy(box);
 }
 
 /* ── 궁합 ── */
@@ -8869,6 +9171,7 @@ function runGh(){
   try{
     out.innerHTML = (GH.mode==="love2") ? loveHTML() : teamHTML();
     bindTerms(out);
+    bindBuy(out);
     intoView(out,{block:"start"});
   }catch(e){
     err.textContent=(e&&e.message)||"다시 확인해 주세요.";
@@ -8893,6 +9196,16 @@ function secHTML(x, n){
   return h.join("");
 }
 
+/* 궁합 잠금 — 관계 이름 카드와 앞 두 꼭지는 열어 둔다.
+   공유되는 건 카드이고, 카드가 돌아야 사람이 들어온다. */
+function ghLockHTML(what, rest){
+  return '<div class="lock"><b>'+esc(what)+'은 여기서부터 잠겨 있습니다</b>'
+    +'<p>남은 '+rest+'가지와 둘씩 맞춰보기, 맺는 말이 들어 있습니다. '
+    +'<strong>연인궁합과 비즈니스궁합이 함께 열립니다.</strong></p>'
+    +'<button type="button" data-buy="love2">궁합 열기</button>'
+    +'<p class="price">'+wonOf("love2")+'원 · 한 번 열면 계속 보실 수 있습니다</p></div>';
+}
+
 function loveHTML(){
   var b=rowToSaju(GH.rows[0], "상대");
   var nm=(GH.rows[0].name||"상대").trim()||"상대";
@@ -8910,7 +9223,9 @@ function loveHTML(){
       +' <span>종합 '+R.score+'점 '+esc(R.grade)+'</span></p>'
     +'<p class="bone">'+md(R.oneLine)+'</p></div>');
   h.push('<div class="sect"><h3>항목별로 보면</h3>'+barsHTML(R.fields)+'</div>');
-  R.sections.forEach(function(x,i){ h.push(secHTML(x,i+1)); });
+  var ghOpen = unlocked("love2"), GHFREE = 2;
+  R.sections.forEach(function(x,i){ if(!ghOpen && i>=GHFREE) return; h.push(secHTML(x,i+1)); });
+  if(!ghOpen){ h.push(ghLockHTML("연인궁합", R.sections.length-GHFREE)); return h.join(""); }
   h.push('<div class="sect"><h3>맺는 말</h3><ul class="blist"><li>'+md(R.closing)+'</li>'
     +'<li style="color:#8A8273">'+md(R.disclaimer)+'</li></ul></div>');
   return h.join("");
@@ -8956,7 +9271,9 @@ function teamHTML(){
 
   h.push('<div class="sect"><h3>팀으로서 어떤가</h3>'+barsHTML(T.fields)+'</div>');
 
-  T.sections.forEach(function(x,i){ h.push(secHTML(x,i+1)); });
+  var ghOpen = unlocked("team"), GHFREE = 2;
+  T.sections.forEach(function(x,i){ if(!ghOpen && i>=GHFREE) return; h.push(secHTML(x,i+1)); });
+  if(!ghOpen){ h.push(ghLockHTML("비즈니스궁합", T.sections.length-GHFREE)); return h.join(""); }
 
   /* 쌍별 */
   h.push('<div class="sect"><h3>둘씩 맞춰보면</h3>');

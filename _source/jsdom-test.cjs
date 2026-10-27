@@ -27,7 +27,15 @@ let fails = 0;
 const ok = (c, m) => { if (!c) { console.log("✗ " + m); fails++; } };
 
 setTimeout(() => {
-  /* ── 1. 명식 입력 ── */
+  /* ── 0. 결제 모드인지, 잠금이 실제로 걸리는지 ── */
+  ok(window.TEST_MODE === false, "TEST_MODE 가 켜져 있음 — 출시 상태가 아님");
+  ok(typeof window.Pay === "object" && typeof window.Pay.buy === "function", "Pay 가 붙지 않음");
+  ok(window.Pay.price("money") === 4900, "풀이 가격이 4,900원이 아님: " + window.Pay.price("money"));
+  ok(window.Pay.price("love2") === 1900, "궁합 가격이 1,900원이 아님: " + window.Pay.price("love2"));
+  ok(window.Pay.has("basic") === true, "기본이 무료가 아님");
+  ok(window.Pay.has("money") === false, "결제 전인데 금전이 열려 있음");
+  ok(window.Pay.has("love2") === false, "결제 전인데 궁합이 열려 있음");
+
   set("y", 1998); set("m", 7); set("d", 22); set("hh", 14); set("mi", 30);
   click("sx-m");
   click("submit");
@@ -53,6 +61,32 @@ setTimeout(() => {
     return b;
   };
   const go = (k) => tab(k).dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+
+  /* ── 2-b. 잠긴 화면이 제대로 뜨는가 ── */
+  go("money");
+  const lockHtml = $("cat").innerHTML;
+  ok(/class="lock"/.test(lockHtml), "결제 전인데 금전에 잠금 상자가 없음");
+  ok(/4,900원/.test(lockHtml), "잠금 상자에 4,900원이 없음");
+  /* 잠긴 항목은 질문만 남고 본문이 맛보기(…)로 잘린다.
+     무료 항목 2개는 그대로 다 보이는 게 맞다. */
+  const qaText = () => [...$("cat").querySelectorAll(".qa")]
+    .reduce((n, e) => n + e.textContent.length, 0);
+  const lockText = qaText();
+  ok((lockHtml.match(/…<\/p>/g) || []).length === 4, "잠긴 항목 4개가 맛보기로 잘리지 않음");
+  ok((lockHtml.match(/note-ex/g) || []).length === 1, "잠긴 화면의 TIP 개수가 1이 아님");
+
+  /* 여기서부터는 결제한 상태로 본다 */
+  window.localStorage.setItem("lifeup.paid.v1",
+    JSON.stringify({ items: { all: { at: "t", amount: 4900 }, gh: { at: "t", amount: 1900 } } }));
+  go("money");
+  const openHtml = $("cat").innerHTML;
+  ok(!/class="lock"/.test(openHtml), "결제했는데 잠금 상자가 남아 있음");
+  ok(/class="note-ex"/.test(openHtml), "결제했는데 TIP 이 없음");
+  /* HTML 길이는 껍데기가 커서 척도가 안 된다. 실제로 읽는 글자로 본다 */
+  const openText = qaText();
+  const hidden = Math.round((1 - lockText / openText) * 100);
+  ok(hidden >= 50, "잠금이 문항 내용을 충분히 가리지 못함 — 가려지는 글자 " + hidden + "%");
+  ok((openHtml.match(/…<\/p>/g) || []).length === 0, "결제했는데 맛보기가 남아 있음");
 
   /* ── 3. 여섯 갈래 ── */
   const want = [["basic","基"],["money","財"],["love","愛"],["biz","業"],["job","職"],["future","運"]];

@@ -345,6 +345,39 @@ button.term.open{background:rgba(154,123,63,.12);border-radius:2px}
  border-radius:2px;font-size:12.5px;line-height:1.75;color:var(--ink-2);word-break:keep-all}
 .termbox b{display:block;font-size:12px;color:var(--ink);margin-bottom:2px}
 
+/* ── 결제 전 동의 창 ──
+   법에서 요구하는 "구매 조건 확인 및 결제 동의" 자리다.
+   닫기보다 결제 버튼이 눈에 띄되, 경고가 작은 글씨로 묻히지 않게 둔다. */
+.paysheet{position:fixed;inset:0;z-index:100;background:rgba(46,42,34,.52);
+ display:flex;align-items:flex-end;justify-content:center;padding:0;overscroll-behavior:contain}
+@media (min-width:560px){ .paysheet{align-items:center;padding:20px} }
+.paysheet-in{width:100%;max-width:520px;max-height:92vh;overflow-y:auto;-webkit-overflow-scrolling:touch;
+ background:var(--paper);border:1px solid var(--rule);border-radius:10px 10px 0 0;
+ padding:24px 20px calc(22px + env(safe-area-inset-bottom))}
+@media (min-width:560px){ .paysheet-in{border-radius:6px} }
+.paysheet-in h2{font-family:var(--mun);font-size:19px;font-weight:700;margin-bottom:14px}
+.payinfo{display:grid;grid-template-columns:auto 1fr;gap:7px 14px;font-size:14px;line-height:1.7;
+ padding-bottom:15px;border-bottom:1px solid var(--rule-soft)}
+.payinfo dt{font-weight:700;color:var(--ink-3);font-size:13px;white-space:nowrap}
+.payinfo dd{word-break:keep-all}
+.payinfo dd b{font-family:var(--mun);font-size:18px;font-weight:700;color:var(--gold)}
+.paywarn{margin-top:15px;padding:13px 14px;background:var(--paper-in);border-radius:3px}
+.paywarn b{display:block;font-size:12.5px;font-weight:700;color:var(--ink-2);margin-bottom:7px}
+.paywarn ul{margin:0;padding-left:16px}
+.paywarn li{font-size:12.5px;line-height:1.75;color:var(--ink-2);margin-bottom:6px;word-break:keep-all}
+.paywarn li:last-child{margin-bottom:0}
+.paywarn li b{display:inline;font-size:inherit;color:var(--ink)}
+.paychk{display:flex;gap:10px;align-items:flex-start;margin-top:16px;font-size:13px;line-height:1.7;
+ color:var(--ink);cursor:pointer;word-break:keep-all}
+.paychk input{width:20px;height:20px;accent-color:var(--gold);flex:none;margin-top:1px}
+.paychk a{color:var(--gold)}
+.paybtns{display:grid;grid-template-columns:1fr 2fr;gap:9px;margin-top:18px}
+.paybtns button{padding:15px 10px;border-radius:3px;font-family:var(--mun);font-size:16px;font-weight:700;cursor:pointer}
+.paybtns #pay-no{background:none;border:1px solid var(--rule);color:var(--ink-2)}
+.paybtns #pay-go{background:var(--ink);border:0;color:var(--paper-up)}
+.paybtns #pay-go[disabled]{background:#C9C2B4;cursor:not-allowed}
+.paynote{margin-top:11px;font-size:11.5px;color:var(--ink-3);line-height:1.7;text-align:center}
+
 .lock{border:1px solid var(--rule);border-radius:2px;padding:26px 20px;margin:20px 0 6px;background:var(--paper-up);text-align:center}
 .lock p{font-size:14.5px;line-height:1.8;color:var(--ink-2);word-break:keep-all}
 .lock b{display:block;font-family:var(--mun);font-size:17px;font-weight:700;color:var(--ink);margin-bottom:8px}
@@ -564,7 +597,7 @@ footer .fcopy{margin-top:9px;font-size:11.5px;color:#A79F8F}
 
 <footer>
   <p>절입 시각과 진태양시를 반영해 계산합니다. 사주는 타고난 조건을 읽는 틀이고, 결정은 보시는 분의 몫입니다.</p>
-  <p class="flinks"><a href="/terms.html">이용약관</a><a href="/privacy.html">개인정보처리방침</a></p>
+  <p class="flinks"><a href="/terms.html">이용약관</a><a href="/refund.html">결제·환불</a><a href="/privacy.html">개인정보처리방침</a></p>
   <p class="fcopy">© 2026 LIFE-UP STYLE</p>
 </footer>
 </div>
@@ -579,8 +612,30 @@ footer .fcopy{margin-top:9px;font-size:11.5px;color:#A79F8F}
 /* ICONS_PLACEHOLDER */
 </script>
 
+<!-- 토스페이먼츠 결제 모듈 -->
+<script src="https://js.tosspayments.com/v2/standard"></script>
+
 <script>
-window.TEST_MODE = true;
+/* ═══ 설정 ═══
+   TEST_MODE  결제 없이 전부 열립니다. 출시 상태에서는 반드시 false.
+   TOSS_CLIENT_KEY
+     테스트: test_ck_... (토스 개발자센터 → 내 개발정보)
+     실제  : live_ck_...
+     서버의 TOSS_SECRET_KEY 와 반드시 짝을 맞추세요
+     (test_ck 에는 test_sk, live_ck 에는 live_sk).
+   클라이언트 키는 공개되어도 되는 값입니다. 시크릿 키는 절대 여기 넣지 마세요. */
+window.TEST_MODE = false;
+window.LIFEUP = {
+  TOSS_CLIENT_KEY: "REPLACE_WITH_TOSS_CLIENT_KEY",
+  CONFIRM_URL: "/api/confirm"
+};
+</script>
+
+<script>
+/* PAY_PLACEHOLDER */
+</script>
+
+<script>
 
 (function(){
 "use strict";
@@ -897,7 +952,9 @@ function qaHTML(it, locked){
 /* ── 상태 ── */
 var CUR=null, SIMPLE=null, TAB="basic", MYNAME="";
 function me(){ return MYNAME || "나"; }
-var PRICE={ basic:0, money:9900, love:9900, biz:9900, job:9900, future:9900, gh:12000, newyear:9900 };
+/* 가격은 pay.js 의 PRODUCT 하나만 본다. 두 군데 적어 두면 반드시 어긋난다 */
+function priceOf(key){ try{ return Pay.price(key); }catch(e){ return 0; } }
+function wonOf(key){ return priceOf(key).toLocaleString(); }
 
 function unlocked(key){
   if(window.TEST_MODE) return true;
@@ -934,11 +991,21 @@ function renderIndex(){
   add("team",  "同", "비즈니스궁합");
 }
 
+/* 결제 버튼 연결 — 잠금 상자가 들어가는 모든 화면에서 같이 쓴다 */
+function bindBuy(box){
+  [].slice.call(box.querySelectorAll("[data-buy]")).forEach(function(b){
+    b.onclick=guard(function(){ Pay.buy(b.dataset.buy); });
+  });
+}
+
 function lockHTML(cat){
+  /* 한 갈래만 따로 파는 게 아니라 풀이 전체가 한 상품이다.
+     "이 갈래만 사는 것"으로 읽히면 결제 뒤에 오해가 생긴다. */
   return '<div class="lock"><b>'+esc(cat.name)+' 갈래는 여기서부터 잠겨 있습니다</b>'
-    +'<p>남은 '+(cat.items.length-cat.freeCount)+'가지를 열면 '+esc(cat.sub)+'에 대해 끝까지 보실 수 있습니다.</p>'
-    +'<button type="button" data-buy="'+esc(cat.key)+'">'+esc(cat.name)+' 전부 열기</button>'
-    +'<p class="price">'+(PRICE[cat.key]||9900).toLocaleString()+'원 · 한 번 열면 계속 보실 수 있습니다</p></div>';
+    +'<p>남은 '+(cat.items.length-cat.freeCount)+'가지를 포함해 '
+    +'<strong>금전·연애·사업·직업·미래 다섯 갈래와 신년운세 전체</strong>가 한 번에 열립니다.</p>'
+    +'<button type="button" data-buy="'+esc(cat.key)+'">풀이 전부 열기</button>'
+    +'<p class="price">'+wonOf(cat.key)+'원 · 한 번 열면 계속 보실 수 있습니다</p></div>';
 }
 
 /* 보여줄 해 — 10월부터는 내년 것을 먼저 띄운다.
@@ -999,9 +1066,10 @@ function nyHTML(R){
   if(!open){
     h.push('<div class="lock"><b>'+R.year+'년운세는 여기서부터 잠겨 있습니다</b>'
       +'<p>남은 '+(R.sections.length-FREE)+'가지에 열두 달 흐름, 돈·일·사람·몸, '
-      +'올해 할 한 가지와 달력에 적을 것이 들어 있습니다.</p>'
-      +'<button type="button" data-buy="newyear">'+R.year+'년운세 전부 열기</button>'
-      +'<p class="price">'+PRICE.newyear.toLocaleString()+'원 · 한 번 열면 계속 보실 수 있습니다</p></div>');
+      +'올해 할 한 가지와 달력에 적을 것이 들어 있습니다. '
+      +'<strong>다섯 갈래 풀이도 함께 열립니다.</strong></p>'
+      +'<button type="button" data-buy="newyear">풀이 전부 열기</button>'
+      +'<p class="price">'+wonOf("newyear")+'원 · 한 번 열면 계속 보실 수 있습니다</p></div>');
   }
   return h.join("");
 }
@@ -1012,9 +1080,7 @@ function renderNewYear(){
     var R=buildNewYear(CUR, NY_SHOW, { name: MYNAME || "" });
     box.innerHTML=nyHTML(R);
     bindTerms(box);
-    [].slice.call(box.querySelectorAll("[data-buy]")).forEach(function(b){
-      b.onclick=guard(function(){ Pay.buy(b.dataset.buy); });
-    });
+    bindBuy(box);
     var cp=$("ny-cp");
     if(cp) cp.onclick=function(){
       var t=R.year+"년 "+R.ganji.gapjaCn+", 나는 「"+R.char+" "+R.charName+"」\n"
@@ -1079,9 +1145,7 @@ function renderCat(){
   h.push('</div>');
   box.innerHTML=h.join("");
   bindTerms(box);
-  box.querySelectorAll("[data-buy]").forEach(function(b){
-    b.onclick=guard(function(){ Pay.buy(b.dataset.buy); });
-  });
+  bindBuy(box);
 }
 
 /* ── 궁합 ── */
@@ -1198,6 +1262,7 @@ function runGh(){
   try{
     out.innerHTML = (GH.mode==="love2") ? loveHTML() : teamHTML();
     bindTerms(out);
+    bindBuy(out);
     intoView(out,{block:"start"});
   }catch(e){
     err.textContent=(e&&e.message)||"다시 확인해 주세요.";
@@ -1222,6 +1287,16 @@ function secHTML(x, n){
   return h.join("");
 }
 
+/* 궁합 잠금 — 관계 이름 카드와 앞 두 꼭지는 열어 둔다.
+   공유되는 건 카드이고, 카드가 돌아야 사람이 들어온다. */
+function ghLockHTML(what, rest){
+  return '<div class="lock"><b>'+esc(what)+'은 여기서부터 잠겨 있습니다</b>'
+    +'<p>남은 '+rest+'가지와 둘씩 맞춰보기, 맺는 말이 들어 있습니다. '
+    +'<strong>연인궁합과 비즈니스궁합이 함께 열립니다.</strong></p>'
+    +'<button type="button" data-buy="love2">궁합 열기</button>'
+    +'<p class="price">'+wonOf("love2")+'원 · 한 번 열면 계속 보실 수 있습니다</p></div>';
+}
+
 function loveHTML(){
   var b=rowToSaju(GH.rows[0], "상대");
   var nm=(GH.rows[0].name||"상대").trim()||"상대";
@@ -1239,7 +1314,9 @@ function loveHTML(){
       +' <span>종합 '+R.score+'점 '+esc(R.grade)+'</span></p>'
     +'<p class="bone">'+md(R.oneLine)+'</p></div>');
   h.push('<div class="sect"><h3>항목별로 보면</h3>'+barsHTML(R.fields)+'</div>');
-  R.sections.forEach(function(x,i){ h.push(secHTML(x,i+1)); });
+  var ghOpen = unlocked("love2"), GHFREE = 2;
+  R.sections.forEach(function(x,i){ if(!ghOpen && i>=GHFREE) return; h.push(secHTML(x,i+1)); });
+  if(!ghOpen){ h.push(ghLockHTML("연인궁합", R.sections.length-GHFREE)); return h.join(""); }
   h.push('<div class="sect"><h3>맺는 말</h3><ul class="blist"><li>'+md(R.closing)+'</li>'
     +'<li style="color:#8A8273">'+md(R.disclaimer)+'</li></ul></div>');
   return h.join("");
@@ -1285,7 +1362,9 @@ function teamHTML(){
 
   h.push('<div class="sect"><h3>팀으로서 어떤가</h3>'+barsHTML(T.fields)+'</div>');
 
-  T.sections.forEach(function(x,i){ h.push(secHTML(x,i+1)); });
+  var ghOpen = unlocked("team"), GHFREE = 2;
+  T.sections.forEach(function(x,i){ if(!ghOpen && i>=GHFREE) return; h.push(secHTML(x,i+1)); });
+  if(!ghOpen){ h.push(ghLockHTML("비즈니스궁합", T.sections.length-GHFREE)); return h.join(""); }
 
   /* 쌍별 */
   h.push('<div class="sect"><h3>둘씩 맞춰보면</h3>');

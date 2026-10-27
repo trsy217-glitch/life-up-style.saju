@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>결제 완료 — LIFE-UP STYLE</title>
+<meta name="description" content="결제 결과를 확인하는 중입니다.">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#FAF6ED">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+/* 약관·방침 공통 — 앱과 같은 한지·금니 결 */
+:root{
+  --paper:#FAF6ED; --paper-up:#FFFDF8; --paper-in:#F3ECDD;
+  --rule:#D9CDB4; --rule-soft:#E7DFCD;
+  --ink:#2E2A22; --ink-2:#5C564A; --ink-3:#8A8273;
+  --gold:#9A7B3F; --gold-soft:#C6AC74; --hwa:#B23A32;
+  --mun:"Noto Serif KR",serif;
+  --ui:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard",system-ui,"Malgun Gothic",sans-serif;
+  --w:680px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;scroll-padding-top:20px}
+body{background:var(--paper);color:var(--ink);font-family:var(--ui);
+ font-size:15.5px;line-height:1.85;letter-spacing:-.003em;
+ padding:0 18px calc(60px + env(safe-area-inset-bottom));word-break:keep-all}
+.wrap{max-width:var(--w);margin:0 auto}
+a{color:var(--gold)}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+header.top{padding:38px 0 22px;border-bottom:1px solid var(--rule)}
+.mark{font-family:var(--mun);font-weight:900;font-size:12.5px;letter-spacing:.26em;color:var(--gold);margin-bottom:12px}
+header.top h1{font-family:var(--mun);font-weight:700;font-size:clamp(23px,6vw,29px);line-height:1.35;letter-spacing:-.02em}
+header.top .when{margin-top:10px;font-size:13px;color:var(--ink-3)}
+
+/* 채워 넣어야 할 자리 — 지우기 전에는 눈에 띄게 둔다 */
+.todo{margin:22px 0 0;padding:15px 16px;border:1px solid var(--hwa);border-left:4px solid var(--hwa);
+ border-radius:3px;background:#FDF3F2;font-size:13.5px;line-height:1.8}
+.todo b{display:block;font-size:13px;color:var(--hwa);margin-bottom:5px;letter-spacing:.02em}
+
+.toc{margin:24px 0 4px;padding:16px 18px;background:var(--paper-up);border:1px solid var(--rule);border-radius:3px}
+.toc b{display:block;font-family:var(--mun);font-size:14px;font-weight:700;margin-bottom:8px}
+.toc ol{margin:0;padding-left:19px;font-size:14px;line-height:2}
+.toc a{text-decoration:none}
+.toc a:hover{text-decoration:underline}
+
+section{padding:26px 0 2px;border-top:1px solid var(--rule-soft);scroll-margin-top:16px}
+section:first-of-type{border-top:0}
+h2{font-family:var(--mun);font-weight:700;font-size:18px;line-height:1.5;letter-spacing:-.015em;margin-bottom:12px;
+ display:flex;gap:9px;align-items:baseline}
+h2 u{flex:none;text-decoration:none;font-family:var(--ui);font-size:12px;font-weight:700;color:var(--gold-soft);
+ font-variant-numeric:tabular-nums;padding-top:3px}
+h3{font-family:var(--mun);font-weight:700;font-size:15px;margin:18px 0 7px}
+p{margin-bottom:11px}
+p:last-child{margin-bottom:0}
+ol,ul{margin:0 0 11px;padding-left:20px}
+li{margin-bottom:6px;line-height:1.85}
+li:last-child{margin-bottom:0}
+strong{font-weight:700}
+em{font-style:normal;background:rgba(154,123,63,.13);border-radius:2px;padding:0 4px;font-weight:700;color:var(--gold)}
+
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:14px}
+th,td{border:1px solid var(--rule-soft);padding:9px 11px;text-align:left;vertical-align:top;line-height:1.75}
+th{background:var(--paper-in);font-weight:700;white-space:nowrap;width:34%}
+@media (max-width:420px){ th{width:38%;white-space:normal} th,td{padding:8px 9px;font-size:13.5px} }
+
+.box{background:var(--paper-up);border:1px solid var(--rule);border-radius:3px;padding:15px 16px;margin:14px 0}
+.box b{display:block;font-family:var(--mun);font-size:14px;font-weight:700;margin-bottom:6px}
+.note{font-size:13px;color:var(--ink-3);line-height:1.8;margin-top:10px}
+
+footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--rule);font-size:12.5px;color:var(--ink-3);line-height:1.9}
+footer a{margin-right:14px}
+.back{display:inline-block;margin-top:14px;font-size:13.5px;font-weight:700;color:var(--gold);text-decoration:none}
+.back::before{content:"← "}
+
+/* ── 결제 결과 화면 ── */
+.okbox{border-color:var(--gold-soft);border-left:4px solid var(--gold);background:#FFFBF2}
+.errbox2{border-color:var(--hwa);border-left:4px solid var(--hwa);background:#FDF3F2}
+.errbox2 b{color:var(--hwa)}
+.gobtn{display:inline-block;margin-top:14px;padding:14px 26px;background:var(--ink);color:var(--paper-up);
+ border-radius:3px;font-family:var(--mun);font-size:16px;font-weight:700;text-decoration:none}
+.gobtn.ghost{background:none;border:1px solid var(--rule);color:var(--ink-2)}
+#stage-load b{color:var(--gold)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <p class="mark">LIFE-UP STYLE</p>
+  <h1>결제 완료</h1>
+  
+</header>
+
+<div id="stage-load">
+  <div class="box"><b>결제를 확인하고 있습니다</b>
+    <p>잠시만 기다려 주세요. <strong>이 창을 닫지 마세요.</strong></p>
+    <p class="note">보통 2~3초면 끝납니다.</p>
+  </div>
+</div>
+
+<div id="stage-ok" hidden>
+  <div class="box okbox">
+    <b>결제가 끝났습니다</b>
+    <p>바로 열렸습니다. 아래 버튼으로 돌아가시면 이어서 보실 수 있습니다.</p>
+    <table id="okinfo"></table>
+    <p><a class="gobtn" href="/">풀이 보러 가기</a></p>
+    <p class="note" id="okreceipt"></p>
+  </div>
+  <div class="box">
+    <b>이것만 기억해 주세요</b>
+    <ul>
+      <li>열람 기록은 <strong>지금 쓰시는 기기의 브라우저에만</strong> 남습니다.
+        다른 기기에서는 다시 열어 주셔야 합니다.</li>
+      <li>브라우저 데이터를 지우면 함께 지워집니다.
+        그런 경우 <em>○○@○○</em> 으로 주문번호를 보내 주시면 확인해 드립니다.</li>
+      <li>영수증은 토스페이먼츠가 발행하며, 결제하신 카드사 앱에서도 보실 수 있습니다.</li>
+    </ul>
+  </div>
+</div>
+
+<div id="stage-err" hidden>
+  <div class="box errbox2">
+    <b>결제를 확인하지 못했습니다</b>
+    <p id="errmsg">잠시 뒤 다시 시도해 주세요.</p>
+    <table id="errinfo"></table>
+    <p class="note"><strong>결제가 되었는데 이 화면이 보인다면 금액이 빠져나가지 않았거나,
+      빠져나갔더라도 자동으로 취소됩니다.</strong> 걱정하지 마시고 아래로 알려 주세요.</p>
+    <p><a class="gobtn ghost" href="/">처음으로</a></p>
+  </div>
+  <div class="box">
+    <b>문의</b>
+    <table>
+      <tr><th>전자우편</th><td><em>○○@○○</em></td></tr>
+      <tr><th>전화</th><td><em>○○-○○○○-○○○○</em></td></tr>
+    </table>
+    <p class="note">주문번호를 함께 알려 주시면 더 빨리 확인됩니다.</p>
+  </div>
+</div>
+
+
+<footer>
+  <p><a href="/">앱으로</a><a href="/terms.html">이용약관</a><a href="/refund.html">환불정책</a><a href="/privacy.html">개인정보처리방침</a></p>
+  <p style="margin-top:8px">© 2026 <em>○○</em>. LIFE-UP STYLE.</p>
+  <a class="back" href="/">LIFE-UP STYLE 로 돌아가기</a>
+</footer>
+</div>
+<script>
+(function(){
+  "use strict";
+  var KEY_STORE = "lifeup.paid.v1";
+  var NAME = { all:"풀이 전부", gh:"궁합" };
+  var $ = function(id){ return document.getElementById(id); };
+  function show(id){ ["stage-load","stage-ok","stage-err"].forEach(function(s){
+    var e=$(s); if(e) e.hidden = (s!==id); }); }
+  function rows(tbl, pairs){
+    if(!tbl) return;
+    tbl.innerHTML = pairs.filter(function(p){ return p[1]; })
+      .map(function(p){ return "<tr><th>"+p[0]+"</th><td>"+String(p[1])
+        .replace(/&/g,"&amp;").replace(/</g,"&lt;")+"</td></tr>"; }).join("");
+  }
+  function mark(code, info){
+    try{
+      var raw = localStorage.getItem(KEY_STORE);
+      var v = raw ? JSON.parse(raw) : null;
+      if(!v || typeof v!=="object" || !v.items) v = { items:{} };
+      v.items[code] = { at:new Date().toISOString(), orderId:info.orderId||"",
+                        paymentKey:info.paymentKey||"", amount:info.amount||0 };
+      localStorage.setItem(KEY_STORE, JSON.stringify(v));
+      return true;
+    }catch(e){ return false; }
+  }
+
+  var q = new URLSearchParams(location.search);
+  var paymentKey = q.get("paymentKey"), orderId = q.get("orderId"), amount = q.get("amount");
+
+  if(!paymentKey || !orderId || !amount){
+    show("stage-err");
+    $("errmsg").textContent = "결제 정보가 없습니다. 결제를 다시 시도해 주세요.";
+    return;
+  }
+
+  fetch("/api/confirm", {
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ paymentKey:paymentKey, orderId:orderId, amount:Number(amount) })
+  })
+  .then(function(r){ return r.json().then(function(d){ return { ok:r.ok, d:d }; }); })
+  .then(function(res){
+    if(!res.ok || !res.d.ok) throw new Error((res.d && res.d.message) || "결제 승인에 실패했습니다.");
+    var d = res.d;
+    var saved = mark(d.product, d);
+    show("stage-ok");
+    rows($("okinfo"), [
+      ["상품", NAME[d.product] || d.product],
+      ["결제 금액", Number(d.amount).toLocaleString()+"원"],
+      ["주문번호", d.orderId],
+      ["결제 일시", (d.approvedAt||"").replace("T"," ").slice(0,16)]
+    ]);
+    if(d.receiptUrl){
+      $("okreceipt").innerHTML = '<a href="'+d.receiptUrl+'" target="_blank" rel="noopener">영수증 보기</a>';
+    }
+    if(!saved){
+      $("okreceipt").innerHTML += '<br><strong>브라우저가 저장을 막고 있어 열람 기록을 남기지 못했습니다. '
+        + '시크릿 모드를 끄고 다시 들어오시거나, 위 주문번호를 저장해 두신 뒤 문의해 주세요.</strong>';
+    }
+    try{ sessionStorage.removeItem("lifeup.pending"); }catch(e){}
+  })
+  .catch(function(err){
+    show("stage-err");
+    $("errmsg").textContent = (err && err.message) || "결제를 확인하지 못했습니다.";
+    rows($("errinfo"), [["주문번호", orderId], ["금액", Number(amount).toLocaleString()+"원"]]);
+  });
+})();
+</script>
+</body>
+</html>
