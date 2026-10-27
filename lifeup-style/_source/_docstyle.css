@@ -1,0 +1,63 @@
+/* 약관·방침 공통 — 앱과 같은 한지·금니 결 */
+:root{
+  --paper:#FAF6ED; --paper-up:#FFFDF8; --paper-in:#F3ECDD;
+  --rule:#D9CDB4; --rule-soft:#E7DFCD;
+  --ink:#2E2A22; --ink-2:#5C564A; --ink-3:#8A8273;
+  --gold:#9A7B3F; --gold-soft:#C6AC74; --hwa:#B23A32;
+  --mun:"Noto Serif KR",serif;
+  --ui:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard",system-ui,"Malgun Gothic",sans-serif;
+  --w:680px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;scroll-padding-top:20px}
+body{background:var(--paper);color:var(--ink);font-family:var(--ui);
+ font-size:15.5px;line-height:1.85;letter-spacing:-.003em;
+ padding:0 18px calc(60px + env(safe-area-inset-bottom));word-break:keep-all}
+.wrap{max-width:var(--w);margin:0 auto}
+a{color:var(--gold)}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+header.top{padding:38px 0 22px;border-bottom:1px solid var(--rule)}
+.mark{font-family:var(--mun);font-weight:900;font-size:12.5px;letter-spacing:.26em;color:var(--gold);margin-bottom:12px}
+header.top h1{font-family:var(--mun);font-weight:700;font-size:clamp(23px,6vw,29px);line-height:1.35;letter-spacing:-.02em}
+header.top .when{margin-top:10px;font-size:13px;color:var(--ink-3)}
+
+/* 채워 넣어야 할 자리 — 지우기 전에는 눈에 띄게 둔다 */
+.todo{margin:22px 0 0;padding:15px 16px;border:1px solid var(--hwa);border-left:4px solid var(--hwa);
+ border-radius:3px;background:#FDF3F2;font-size:13.5px;line-height:1.8}
+.todo b{display:block;font-size:13px;color:var(--hwa);margin-bottom:5px;letter-spacing:.02em}
+
+.toc{margin:24px 0 4px;padding:16px 18px;background:var(--paper-up);border:1px solid var(--rule);border-radius:3px}
+.toc b{display:block;font-family:var(--mun);font-size:14px;font-weight:700;margin-bottom:8px}
+.toc ol{margin:0;padding-left:19px;font-size:14px;line-height:2}
+.toc a{text-decoration:none}
+.toc a:hover{text-decoration:underline}
+
+section{padding:26px 0 2px;border-top:1px solid var(--rule-soft);scroll-margin-top:16px}
+section:first-of-type{border-top:0}
+h2{font-family:var(--mun);font-weight:700;font-size:18px;line-height:1.5;letter-spacing:-.015em;margin-bottom:12px;
+ display:flex;gap:9px;align-items:baseline}
+h2 u{flex:none;text-decoration:none;font-family:var(--ui);font-size:12px;font-weight:700;color:var(--gold-soft);
+ font-variant-numeric:tabular-nums;padding-top:3px}
+h3{font-family:var(--mun);font-weight:700;font-size:15px;margin:18px 0 7px}
+p{margin-bottom:11px}
+p:last-child{margin-bottom:0}
+ol,ul{margin:0 0 11px;padding-left:20px}
+li{margin-bottom:6px;line-height:1.85}
+li:last-child{margin-bottom:0}
+strong{font-weight:700}
+em{font-style:normal;background:rgba(154,123,63,.13);border-radius:2px;padding:0 4px;font-weight:700;color:var(--gold)}
+
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:14px}
+th,td{border:1px solid var(--rule-soft);padding:9px 11px;text-align:left;vertical-align:top;line-height:1.75}
+th{background:var(--paper-in);font-weight:700;white-space:nowrap;width:34%}
+@media (max-width:420px){ th{width:38%;white-space:normal} th,td{padding:8px 9px;font-size:13.5px} }
+
+.box{background:var(--paper-up);border:1px solid var(--rule);border-radius:3px;padding:15px 16px;margin:14px 0}
+.box b{display:block;font-family:var(--mun);font-size:14px;font-weight:700;margin-bottom:6px}
+.note{font-size:13px;color:var(--ink-3);line-height:1.8;margin-top:10px}
+
+footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--rule);font-size:12.5px;color:var(--ink-3);line-height:1.9}
+footer a{margin-right:14px}
+.back{display:inline-block;margin-top:14px;font-size:13.5px;font-weight:700;color:var(--gold);text-decoration:none}
+.back::before{content:"← "}
