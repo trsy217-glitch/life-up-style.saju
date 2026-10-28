@@ -73,6 +73,9 @@
     return !!readPaid().items[code];
   }
 
+  /** 지금이 무료 공개 기간인가 — 화면 문구를 바꾸는 데 쓴다 */
+  function isFree() { return !!CFG.FREE_UNLOCK; }
+
   /** 갈래 하나가 열려 있는지 */
   function has(key) {
     if (window.TEST_MODE) return true;
@@ -175,6 +178,15 @@
     if (!p) { say("결제할 수 없는 항목입니다."); return; }
     if (hasProduct(p.code)) { say("이미 열려 있습니다."); return; }
 
+    /* 무료 공개 기간 — 결제창을 띄우지 않고 그 자리에서 열어 준다.
+       결제를 받기 시작하실 때 LIFEUP.FREE_UNLOCK 을 false 로 바꾸시면
+       아래 결제 절차가 그대로 살아난다. */
+    if (CFG.FREE_UNLOCK) {
+      markPaid(p.code, { orderId: "FREE-" + p.code, amount: 0 });
+      if (typeof CFG.onUnlock === "function") CFG.onUnlock(p.code);
+      return;
+    }
+
     var ck = CFG.TOSS_CLIENT_KEY || "";
     if (!ck || ck.indexOf("REPLACE") === 0) {
       say("결제 키가 아직 설정되지 않았습니다. 잠시 뒤에 다시 시도해 주세요.");
@@ -229,6 +241,7 @@
     price: function (key) { var p = productFor(key); return p ? p.price : 0; },
     has: has,
     hasProduct: hasProduct,
+    isFree: isFree,
     markPaid: markPaid,
     buy: buy,
     list: list,

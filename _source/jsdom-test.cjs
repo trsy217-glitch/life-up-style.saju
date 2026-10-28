@@ -62,31 +62,45 @@ setTimeout(() => {
   };
   const go = (k) => tab(k).dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
 
-  /* ── 2-b. 잠긴 화면이 제대로 뜨는가 ── */
+  /* ── 2-b. 블러 미리보기가 제대로 뜨는가 ── */
   go("money");
   const lockHtml = $("cat").innerHTML;
-  ok(/class="lock"/.test(lockHtml), "결제 전인데 금전에 잠금 상자가 없음");
-  ok(/4,900원/.test(lockHtml), "잠금 상자에 4,900원이 없음");
-  /* 잠긴 항목은 질문만 남고 본문이 맛보기(…)로 잘린다.
-     무료 항목 2개는 그대로 다 보이는 게 맞다. */
-  const qaText = () => [...$("cat").querySelectorAll(".qa")]
-    .reduce((n, e) => n + e.textContent.length, 0);
-  const lockText = qaText();
-  ok((lockHtml.match(/…<\/p>/g) || []).length === 4, "잠긴 항목 4개가 맛보기로 잘리지 않음");
-  ok((lockHtml.match(/note-ex/g) || []).length === 1, "잠긴 화면의 TIP 개수가 1이 아님");
+  ok(/class="peek"/.test(lockHtml), "결제 전인데 블러 미리보기가 없음");
+  ok(!/잠겨 있습니다/.test(lockHtml), "옛 '잠겨 있습니다' 문구가 남아 있음");
+  ok(!/class="lock"/.test(lockHtml), "옛 잠금 상자가 남아 있음");
+  ok(/class="peek-cta"/.test(lockHtml), "이어서 보기 버튼이 없음");
 
-  /* 여기서부터는 결제한 상태로 본다 */
+  /* 잠긴 꼭지는 전부 흐린 칸 안에 들어 있어야 한다.
+     밖에 새어 나오면 돈 받을 것이 그냥 읽힌다. */
+  const peekIn = $("cat").querySelector(".peek-in");
+  ok(!!peekIn, ".peek-in 이 없음");
+  const outside = [...$("cat").querySelectorAll(".qa")].filter(e => !e.closest(".peek-in"));
+  ok(outside.length === 2, "흐린 칸 밖에 보이는 문항이 " + outside.length + "개 (기대 2 = 무료분)");
+  ok(peekIn.querySelectorAll(".qa").length === 4, "흐린 칸 안의 문항이 4개가 아님");
+
+  /* 무료 공개 기간이면 누르는 즉시 열려야 한다 */
+  ok(window.LIFEUP && window.LIFEUP.FREE_UNLOCK === true, "FREE_UNLOCK 이 켜져 있지 않음");
+  ok(window.Pay.isFree() === true, "Pay 가 무료 기간으로 보지 않음");
+  $("cat").querySelector(".peek-cta button")
+    .dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+  const afterHtml = $("cat").innerHTML;
+  ok(!/class="peek"/.test(afterHtml), "눌렀는데 블러가 그대로임");
+  ok([...$("cat").querySelectorAll(".qa")].length === 6, "눌렀는데 문항이 6개가 아님");
+  ok(/class="note-ex"/.test(afterHtml), "눌렀는데 TIP 이 없음");
+  ok(window.Pay.has("money") === true, "눌렀는데 열림 표시가 안 남음");
+
+  /* 나머지 갈래도 같이 열려야 한다 — 한 상품이므로 */
+  ok(window.Pay.has("future") === true, "같은 상품인 미래가 안 열림");
+  ok(window.Pay.has("newyear") === true, "같은 상품인 신년운세가 안 열림");
+  ok(window.Pay.has("love2") === false, "궁합은 별도 상품인데 같이 열림");
+
+  /* 갈래 고르는 판 */
+  ok($("picker").querySelectorAll(".pcard").length === 9,
+     "갈래 카드가 9개가 아님: " + $("picker").querySelectorAll(".pcard").length);
+
+  /* 나머지 검사는 전부 열린 상태로 본다 */
   window.localStorage.setItem("lifeup.paid.v1",
-    JSON.stringify({ items: { all: { at: "t", amount: 4900 }, gh: { at: "t", amount: 1900 } } }));
-  go("money");
-  const openHtml = $("cat").innerHTML;
-  ok(!/class="lock"/.test(openHtml), "결제했는데 잠금 상자가 남아 있음");
-  ok(/class="note-ex"/.test(openHtml), "결제했는데 TIP 이 없음");
-  /* HTML 길이는 껍데기가 커서 척도가 안 된다. 실제로 읽는 글자로 본다 */
-  const openText = qaText();
-  const hidden = Math.round((1 - lockText / openText) * 100);
-  ok(hidden >= 50, "잠금이 문항 내용을 충분히 가리지 못함 — 가려지는 글자 " + hidden + "%");
-  ok((openHtml.match(/…<\/p>/g) || []).length === 0, "결제했는데 맛보기가 남아 있음");
+    JSON.stringify({ items: { all: { at: "t", amount: 0 }, gh: { at: "t", amount: 0 } } }));
 
   /* ── 3. 여섯 갈래 ── */
   const want = [["basic","基"],["money","財"],["love","愛"],["biz","業"],["job","職"],["future","運"]];
