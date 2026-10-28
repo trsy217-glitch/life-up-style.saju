@@ -49,6 +49,8 @@
   --gold-soft:#C6AC74;
   /* 오방색 — 오행 데이터에만 쓴다 */
   --mok:#2E7D6E; --hwa:#B23A32; --to:#C08A1E; --geum:#6E7681; --su:#3F5490;
+  /* 갈래 제목 — 금니보다 세게 눈에 걸려야 "여기부터 다른 이야기"가 보인다 */
+  --jaju:#9B2743; --jaju-soft:#C06A80;
 
   --mun:"Noto Serif KR",serif;
   --ui:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard",system-ui,"Malgun Gothic",sans-serif;
@@ -237,8 +239,8 @@ details.fold[open]>summary::after{content:"접기"}
 /* ── 갈래 고르는 판 ──
    탭 줄은 작고 한 번에 다 안 보인다. 명식을 보고 난 사람이 "그래서 뭘 볼까" 하는
    자리에서 아홉 갈래를 한눈에 펼쳐 준다. */
-.picker{margin-top:30px}
-.picker h2{font-family:var(--mun);font-weight:700;font-size:19px;letter-spacing:-.015em;margin-bottom:4px}
+.picker{margin-top:26px;margin-bottom:4px}
+.picker h2{font-family:var(--mun);font-weight:900;font-size:20px;letter-spacing:-.02em;margin-bottom:5px;color:var(--jaju)}
 .picker .psub{font-size:13px;color:var(--ink-3);line-height:1.7;margin-bottom:14px}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
 @media (max-width:360px){ .pgrid{grid-template-columns:repeat(2,1fr)} }
@@ -248,7 +250,7 @@ details.fold[open]>summary::after{content:"접기"}
 .pcard:active{background:var(--paper-in)}
 .pcard .cico{width:46px;height:46px;margin-bottom:5px}
 .pcard .cico.fb{font-size:21px;line-height:1}
-.pcard b{font-family:var(--mun);font-size:14.5px;font-weight:700;letter-spacing:-.02em;line-height:1.3}
+.pcard b{font-family:var(--mun);font-size:14.5px;font-weight:800;letter-spacing:-.02em;line-height:1.3;color:var(--jaju)}
 .pcard u{text-decoration:none;font-size:10.5px;color:var(--ink-3);line-height:1.45;word-break:keep-all;
  letter-spacing:-.04em;margin-top:2px}
 .pcard .pfree{display:inline-block;margin-top:5px;font-size:9.5px;font-weight:700;letter-spacing:.02em;
@@ -322,18 +324,23 @@ details.fold[open]>summary::after{content:"접기"}
 .catmeta{padding:22px 0 4px;scroll-margin-top:84px;display:flex;gap:14px;align-items:center}
 .catmeta .cico{width:60px;height:60px}
 .catmeta .cico.fb{font-size:27px;line-height:1}
-.catmeta h2{font-family:var(--mun);font-weight:700;font-size:21px;letter-spacing:-.01em}
-.catmeta p{font-size:13.5px;color:var(--ink-2);margin-top:5px}
+.catmeta h2{font-family:var(--mun);font-weight:900;font-size:24px;letter-spacing:-.015em;color:var(--jaju);
+ line-height:1.3}
+.catmeta h2 i{font-style:normal;color:var(--jaju-soft);margin-right:4px}
+.catmeta p{font-size:13.5px;color:var(--ink-2);margin-top:6px}
+.catmeta>div{min-width:0}
 @media (max-width:380px){ .catmeta .cico{width:50px;height:50px} .catmeta .cico.fb{font-size:23px} }
 
 /* ── 문답 ── */
-.qa{border-top:1px solid var(--rule-soft);padding:20px 0}
-.qa:first-of-type{border-top:0}
-.qa h3{font-family:var(--mun);font-weight:700;font-size:17.5px;line-height:1.5;letter-spacing:-.015em;word-break:keep-all;
- display:flex;gap:9px;align-items:baseline}
-.qa h3 u{flex:none;text-decoration:none;font-family:var(--ui);font-size:12px;font-weight:700;color:var(--gold-soft);
- font-variant-numeric:tabular-nums;padding-top:4px}
-.qa .body{margin-top:11px}
+.qa{border-top:1px solid var(--rule);padding:26px 0 22px}
+.qa:first-of-type{border-top:0;padding-top:18px}
+.qa h3{font-family:var(--mun);font-weight:900;font-size:18.5px;line-height:1.48;letter-spacing:-.02em;
+ word-break:keep-all;color:var(--jaju);display:flex;gap:10px;align-items:flex-start}
+/* 번호는 동그란 배지로 — 글 흐름에서 "새 질문이 시작된다"가 한눈에 보인다 */
+.qa h3 u{flex:none;text-decoration:none;font-family:var(--ui);font-size:12px;font-weight:800;
+ color:var(--paper-up);background:var(--jaju);font-variant-numeric:tabular-nums;
+ width:23px;height:23px;border-radius:50%;display:grid;place-items:center;margin-top:3px;letter-spacing:0}
+.qa .body{margin-top:13px}
 .qa .body p{font-size:15px;line-height:1.88;margin-bottom:12px;word-break:keep-all;color:var(--ink)}
 .qa .body p:last-child{margin-bottom:0}
 .qa .body strong{font-weight:700}
@@ -519,9 +526,13 @@ button.term.open{background:rgba(154,123,63,.12);border-radius:2px}
 .bond .bsub span{display:inline-block;margin-left:5px;padding:1px 8px;border:1px solid var(--rule);border-radius:999px}
 .bond .bone{font-size:13.5px;line-height:1.8;color:var(--ink);margin-top:11px;word-break:keep-all}
 
-.gsec{border-top:1px solid var(--rule-soft);padding:20px 0}
-.gsec h3{font-family:var(--mun);font-weight:700;font-size:17px;line-height:1.5;display:flex;gap:9px;align-items:baseline;word-break:keep-all}
-.gsec h3 u{flex:none;text-decoration:none;font-family:var(--ui);font-size:12px;font-weight:700;color:var(--gold-soft);font-variant-numeric:tabular-nums;padding-top:3px}
+.gsec{border-top:1px solid var(--rule);padding:26px 0 22px}
+.gsec:first-of-type{border-top:0}
+.gsec h3{font-family:var(--mun);font-weight:900;font-size:18px;line-height:1.48;letter-spacing:-.02em;
+ color:var(--jaju);display:flex;gap:10px;align-items:flex-start;word-break:keep-all}
+.gsec h3 u{flex:none;text-decoration:none;font-family:var(--ui);font-size:12px;font-weight:800;
+ color:var(--paper-up);background:var(--jaju);font-variant-numeric:tabular-nums;
+ width:23px;height:23px;border-radius:50%;display:grid;place-items:center;margin-top:3px;letter-spacing:0}
 .glead{font-size:13px;color:var(--ink-3);margin-top:5px;line-height:1.7;word-break:keep-all}
 .gbody{margin-top:11px}
 .gbody p{font-size:14.5px;line-height:1.88;margin-bottom:11px;word-break:keep-all}
@@ -541,7 +552,7 @@ button.term.open{background:rgba(154,123,63,.12);border-radius:2px}
 .grid5 tr.sum th{font-size:11.5px;color:var(--ink-3)}
 
 .sect{margin-top:30px}
-.sect>h3{font-family:var(--mun);font-size:17px;font-weight:700;padding-bottom:9px;border-bottom:1px solid var(--rule)}
+.sect>h3{font-family:var(--mun);font-size:18px;font-weight:900;letter-spacing:-.02em;color:var(--jaju);padding-bottom:10px;border-bottom:2px solid var(--jaju-soft)}
 
 .method{border:1px solid var(--rule);border-radius:2px;padding:17px;margin-top:28px;background:var(--paper-up)}
 .method b{display:block;font-family:var(--mun);font-size:14px;font-weight:700;margin-bottom:8px}
@@ -635,14 +646,14 @@ footer .fcopy{margin-top:9px;font-size:11.5px;color:#A79F8F}
 </section>
 
 <section id="out" aria-live="polite">
+  <section class="picker" id="picker" aria-label="무엇을 보시겠어요"></section>
+
   <div class="plate" id="plate"></div>
   <div class="acts">
     <button type="button" id="copy">명식 복사</button>
     <button type="button" id="toCat">갈래별로 보기</button>
   </div>
   <button type="button" class="again" id="again">다시 입력하기</button>
-
-  <section class="picker" id="picker" aria-label="무엇을 보시겠어요"></section>
 
   <nav class="index" id="index" role="tablist" aria-label="갈래"><div class="index-in" id="index-in"></div></nav>
   <div id="cat"></div>
@@ -1137,7 +1148,7 @@ function nyBars(R){
 function nyHTML(R){
   var S=R.share;
   var h=['<div class="catmeta">'+cicoHTML("newyear","歲")
-    +'<div><h2>歲 '+R.year+'년운세</h2><p>'+esc(R.ganji.gapjaCn)+'년 · 한 해를 한 글자로</p></div></div>'];
+    +'<div><h2><i>歲</i>'+R.year+'년운세</h2><p>'+esc(R.ganji.gapjaCn)+'년 · 한 해를 한 글자로</p></div></div>'];
 
   /* 올해 / 내년 */
   h.push('<div class="gh-seg">'
@@ -1215,7 +1226,7 @@ function renderCat(){
   if(!c){ box.innerHTML=""; return; }
   var open=unlocked(c.key);
   var h=['<div class="catmeta">'+cicoHTML(c.key, c.cn)
-    +'<div><h2>'+esc(c.cn)+' '+esc(c.name)+'</h2><p>'+esc(c.sub)+'</p></div></div>'];
+    +'<div><h2><i>'+esc(c.cn)+'</i>'+esc(c.name)+'</h2><p>'+esc(c.sub)+'</p></div></div>'];
   /* 잠긴 꼭지는 전부 흐린 칸 안에 넣는다. 한두 줄만 흐리면 빈 여백만 남아
      "더 있나" 하는 마음이 안 생긴다. 칸은 CSS 가 한 페이지에서 끊는다. */
   var hid=[];
@@ -1275,7 +1286,7 @@ function ghForm(){
   if(GH.rows.length > max) GH.rows = GH.rows.slice(0, max);
 
   var h=['<div class="catmeta">'+cicoHTML(GH.mode, GH.mode==="love2"?"緣":"同")
-    +'<div><h2>'+(GH.mode==="love2"?"緣 연인궁합":"同 비즈니스궁합")+'</h2>'
+    +'<div><h2>'+(GH.mode==="love2"?"<i>緣</i>연인궁합":"<i>同</i>비즈니스궁합")+'</h2>'
     +'<p>'+(GH.mode==="love2"
       ? "두 사람의 일간과 일지, 그리고 서로의 용신을 맞춰봅니다."
       : "나를 포함해 최대 다섯 명까지, 함께 일이 되는 조합인지 봅니다.")+'</p></div></div>'];
